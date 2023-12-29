@@ -1,0 +1,307 @@
+--Database SQL
+
+CREATE TABLE hasta ( 
+
+    hasta_id SERIAL PRIMARY KEY, 
+
+    ad VARCHAR(50), 
+
+    soyad VARCHAR(50), 
+
+    dogum_tarihi DATE, 
+
+    cinsiyet VARCHAR(10), 
+
+    telefon VARCHAR(15) 
+
+); 
+
+CREATE TABLE doktor ( 
+
+    doktor_id SERIAL PRIMARY KEY, 
+
+    ad VARCHAR(50), 
+
+    soyad VARCHAR(50), 
+
+    uzmanlik_alani VARCHAR(50), 
+
+    telefon VARCHAR(15) 
+
+); 
+
+CREATE TABLE randevu ( 
+
+    randevu_id SERIAL PRIMARY KEY, 
+
+    hasta_id INT REFERENCES hasta(hasta_id), 
+
+    doktor_id INT REFERENCES doktor(doktor_id), 
+
+    randevu_tarihi DATE, 
+
+    saat TIME 
+
+); 
+
+CREATE TABLE muayene ( 
+
+    muayene_id SERIAL PRIMARY KEY, 
+
+    randevu_id INT REFERENCES randevu(randevu_id), 
+
+    muayene_tarihi DATE, 
+
+    muayene_sonucu TEXT 
+
+); 
+
+CREATE TABLE hastalik ( 
+
+    hastalik_id SERIAL PRIMARY KEY, 
+
+    hastalik_adi VARCHAR(50), 
+
+    aciklama TEXT 
+
+); 
+
+CREATE TABLE tedavi ( 
+
+    tedavi_id SERIAL PRIMARY KEY, 
+
+    muayene_id INT REFERENCES muayene(muayene_id), 
+
+    hastalik_id INT REFERENCES hastalik(hastalik_id), 
+
+    tedavi_tarihi DATE, 
+
+    recete TEXT 
+
+); 
+
+CREATE TABLE ilac ( 
+
+    ilac_id SERIAL PRIMARY KEY, 
+
+    ilac_adi VARCHAR(50), 
+
+    dozaj VARCHAR(20), 
+
+    birim_fiyat DECIMAL(10, 2) 
+
+); 
+
+CREATE TABLE recete ( 
+
+    recete_id SERIAL PRIMARY KEY, 
+
+    muayene_id INT REFERENCES muayene(muayene_id), 
+
+    ilac_id INT REFERENCES ilac(ilac_id), 
+
+    miktar INT 
+
+); 
+
+CREATE TABLE laboratuvar_testi ( 
+
+    test_id SERIAL PRIMARY KEY, 
+
+    muayene_id INT REFERENCES muayene(muayene_id), 
+
+    test_adi VARCHAR(50), 
+
+    sonuc TEXT 
+
+); 
+
+CREATE TABLE hastane_personel ( 
+
+    personel_id SERIAL PRIMARY KEY, 
+
+    ad VARCHAR(50), 
+
+    soyad VARCHAR(50), 
+
+    pozisyon VARCHAR(50) 
+
+); 
+
+CREATE TABLE personel_maas ( 
+
+    maas_id SERIAL PRIMARY KEY, 
+
+    personel_id INT REFERENCES hastane_personel(personel_id), 
+
+    miktar DECIMAL(10, 2), 
+
+    tarih DATE 
+
+); 
+
+CREATE TABLE bolum ( 
+
+    bolum_id SERIAL PRIMARY KEY, 
+
+    bolum_adi VARCHAR(50), 
+
+    bolum_aciklama TEXT 
+
+); 
+
+CREATE TABLE departman ( 
+
+    departman_id SERIAL PRIMARY KEY, 
+
+    departman_adi VARCHAR(50), 
+
+    sorumlu_personel_id INT REFERENCES hastane_personel(personel_id) 
+
+); 
+
+CREATE TABLE hastane_donanim ( 
+
+    donanim_id SERIAL PRIMARY KEY, 
+
+    donanim_adi VARCHAR(50), 
+
+    miktar INT 
+
+); 
+
+CREATE TABLE ameliyat ( 
+
+    ameliyat_id SERIAL PRIMARY KEY, 
+
+    hasta_id INT REFERENCES hasta(hasta_id), 
+
+    doktor_id INT REFERENCES doktor(doktor_id), 
+
+    ameliyat_tarihi DATE, 
+
+    ameliyat_turu VARCHAR(50), 
+
+    ameliyat_notu TEXT 
+
+); 
+
+CREATE TABLE muayene_randevusu ( 
+
+    muayene_id SERIAL PRIMARY KEY, 
+
+    muayene_tarihi DATE, 
+
+    muayene_sonucu TEXT, 
+
+    CONSTRAINT muayene_randevusu_fk 
+
+        FOREIGN KEY (randevu_id) 
+
+        REFERENCES randevu(randevu_id) 
+
+        ON DELETE CASCADE 
+
+) INHERITS (randevu); 
+
+ 
+
+CREATE TABLE ameliyat_randevusu ( 
+
+    ameliyat_id SERIAL PRIMARY KEY, 
+
+    ameliyat_tarihi DATE, 
+
+    ameliyat_turu VARCHAR(50), 
+
+    ameliyat_notu TEXT, 
+
+    CONSTRAINT ameliyat_randevusu_fk 
+
+        FOREIGN KEY (randevu_id) 
+
+        REFERENCES randevu(randevu_id) 
+
+        ON DELETE CASCADE 
+
+) INHERITS (randevu);
+
+INSERT INTO hasta (ad, soyad, dogum_tarihi, cinsiyet, telefon) VALUES 
+    ('Ahmet', 'Yılmaz', '1990-05-15', 'Erkek', '555-1234'),
+    ('Ayşe', 'Demir', '1985-08-22', 'Kadın', '555-5678'),
+    ('Mehmet', 'Kara', '1978-12-10', 'Erkek', '555-9012');
+
+INSERT INTO doktor (ad, soyad, uzmanlik_alani, telefon) VALUES 
+    ('Dr. Fatma', 'Şahin', 'Dahiliye', '555-4321'),
+    ('Dr. Ali', 'Kaya', 'Ortopedi', '555-8765'),
+    ('Dr. Zeynep', 'Güneş', 'Kardiyoloji', '555-2109');
+
+INSERT INTO randevu (hasta_id, doktor_id, randevu_tarihi, saat) VALUES 
+    (1, 1, '2023-01-10', '10:00'),
+    (2, 2, '2023-01-15', '14:30'),
+    (3, 3, '2023-01-20', '09:45');
+
+INSERT INTO muayene (randevu_id, muayene_tarihi, muayene_sonucu) VALUES 
+    (1, '2023-01-10', 'Normal'),
+    (2, '2023-01-15', 'Başarılı'),
+    (3, '2023-01-20', 'Acele Sonuç');
+
+INSERT INTO hastalik (hastalik_adi, aciklama) VALUES 
+    ('Grip', 'Hafif belirtiler gösteriyor.'),
+    ('Kırık', 'Sağ kolu kırık.'),
+    ('Kalp Hastalığı', 'Yüksek tansiyon ve kalp çarpıntısı.');
+
+INSERT INTO tedavi (muayene_id, hastalik_id, tedavi_tarihi, recete) VALUES 
+    (1, 1, '2023-01-10', 'İstirahat, bol su içme'),
+    (2, 2, '2023-01-15', 'Kırık bölgeye alçı uygulaması'),
+    (3, 3, '2023-01-20', 'Kalp ilaçları kullanımı');
+
+INSERT INTO ilac (ilac_adi, dozaj, birim_fiyat) VALUES 
+    ('Parol', '1 tablet/gün', 5.50),
+    ('Alpaz', '2 tablet/gün', 8.75),
+    ('Kalpex', '1 tablet/gün', 12.30);
+
+INSERT INTO recete (muayene_id, ilac_id, miktar) VALUES 
+    (1, 1, 10),
+    (2, 2, 15),
+    (3, 3, 30);
+
+INSERT INTO laboratuvar_testi (muayene_id, test_adi, sonuc) VALUES 
+    (1, 'Kan Testi', 'Normal'),
+    (2, 'Röntgen', 'Kırık mevcut'),
+    (3, 'EKG', 'Normal');
+
+INSERT INTO hastane_personel (ad, soyad, pozisyon) VALUES 
+    ('Ahmet', 'Öztürk', 'Hemşire'),
+    ('Zehra', 'Aydın', 'Doktor'),
+    ('Mehmet', 'Koç', 'Temizlik Personeli');
+
+INSERT INTO personel_maas (personel_id, miktar, tarih) VALUES 
+    (1, 3000.00, '2023-01-05'),
+    (2, 6000.00, '2023-01-10'),
+    (3, 2000.00, '2023-01-15');
+
+INSERT INTO bolum (bolum_adi, bolum_aciklama) VALUES 
+    ('Dahiliye', 'İç hastalıkları'),
+    ('Ortopedi', 'Kemik ve eklem sorunları'),
+    ('Kardiyoloji', 'Kalp ve dolaşım sistemi');
+
+INSERT INTO departman (departman_adi, sorumlu_personel_id) VALUES 
+    ('Hastane Yönetimi', 1),
+    ('Muayene Birimi', 2),
+    ('Temizlik Hizmetleri', 3);
+
+INSERT INTO hastane_donanim (donanim_adi, miktar) VALUES 
+    ('MR Cihazı', 2),
+    ('Kan Tahlil Cihazı', 1),
+    ('Ameliyat Lambası', 3);
+
+INSERT INTO ameliyat (hasta_id, doktor_id, ameliyat_tarihi, ameliyat_turu, ameliyat_notu) VALUES 
+    (1, 1, '2023-02-01', 'Apandisit Ameliyatı', 'Başarılı geçti.'),
+    (2, 2, '2023-02-05', 'Kırık Tedavisi', 'Alçı uygulaması yapıldı.'),
+    (3, 3, '2023-02-10', 'Kalp Ameliyatı', 'Komplikasyonsuz geçti.');
+
+INSERT INTO muayene_randevusu (randevu_id, muayene_tarihi, muayene_sonucu) VALUES 
+    (1, '2023-01-10', 'Normal'),
+    (2, '2023-01-15', 'Başarılı'),
+    (3, '2023-01-20', 'Acele Sonuç');
