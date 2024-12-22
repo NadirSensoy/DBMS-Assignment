@@ -5,7 +5,7 @@ from datetime import datetime
 # Veritabanı bağlantısı
 conn = psycopg2.connect(
     host="localhost",
-    database="DB_Assignment",
+    database="db-assignment",
     user="postgres",
     password="postgres"
 )
@@ -28,14 +28,23 @@ def insert_data(table_name, data):
     conn.commit()
 
 # Veri sorgulama
+#def select_data(table_name, condition=None):
+ #   query = sql.SQL("SELECT * FROM {}").format(sql.Identifier(table_name))
+#
+ #   if condition:
+  #      query += sql.SQL(" WHERE {}").format(condition)
+
+   # cur.execute(query)
+    #return cur.fetchall()
 def select_data(table_name, condition=None):
     query = sql.SQL("SELECT * FROM {}").format(sql.Identifier(table_name))
 
     if condition:
-        query += sql.SQL(" WHERE {}").format(condition)
+        query += sql.SQL(" WHERE ") + sql.SQL(condition)
 
     cur.execute(query)
     return cur.fetchall()
+
 
 # Veri güncelleme
 def update_data(table_name, data, condition):
@@ -285,134 +294,62 @@ while True:
 
 
     elif choice == '2':
+        tables = [
+            "hasta", "doktor", "randevu", "muayene", "hastalik",
+            "tedavi", "ilac", "recete", "laboratuvar_testi",
+            "hastane_personel", "personel_maas", "bolum",
+            "departman", "hastane_donanim", "ameliyat"
+        ]
 
-        print("1. Hasta")
-        print("2. Doktor")
-        print("3. Randevu")
-        print("4. Muayene")
-        print("5. Hastalik")
-        print("6. Tedavi")
-        print("7. Ilac")
-        print("8. Recete")
-        print("9. Laboratuvar Testi")
-        print("10. Hastane Personel")
-        print("11. Personel Maas")
-        print("12. Bolum")
-        print("13. Departman")
-        print("14. Hastane Donanim")
-        print("15. Ameliyat")
+        # Tablo listesini göster
+        print("Sorgulamak istediğiniz tabloyu seçin:")
+        for i, table in enumerate(tables, start=1):
+            print(f"{i}. {table}")
 
-        table_choice = input("Hangi tablodan veri sorgulamak istiyorsunuz? (1-15): ")
+        try:
+            table_choice = int(input("\nLütfen tablo numarasını girin (1-15): "))
+            if 1 <= table_choice <= len(tables):
+                table_name = tables[table_choice - 1]
+            else:
+                print("Geçersiz seçim. Lütfen 1 ile 15 arasında bir sayı girin.")
 
-        # 1. Hasta Tablosu
-        if table_choice == '1':
-            table_name = 'hasta'
-            condition = input("Sorgu koşulunu girin (örneğin: ad = 'John'): ")
-            result = select_data(table_name, condition)
-            print(result)
+            # Seçilen tablonun sütun adlarını al
+            query = f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}';"
+            cur.execute(query)
+            columns = [row[0] for row in cur.fetchall()]  # Sütun adlarını al
 
-        # 2. Doktor Tablosu
-        elif table_choice == '2':
-            table_name = 'doktor'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
+            # Sütun adlarını listele
+            print(f"\n{table_name} tablosundaki sütunlar:")
+            for i, column in enumerate(columns, start=1):
+                print(f"{i}. {column}")
 
-        # 3. Randevu Tablosu
-        elif table_choice == '3':
-            table_name = 'randevu'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
+            # Kullanıcıdan sütun seçimi yapmasını iste
+            column_choice = int(input("\nLütfen sütun numarasını girin: "))
+            if 1 <= column_choice <= len(columns):
+                column_name = columns[column_choice - 1]
 
-        # 4. Muayene Tablosu
-        elif table_choice == '4':
-            table_name = 'muayene'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
+            else:
+                print("Geçersiz seçim. Lütfen geçerli bir sütun numarası girin.")
 
+            # Kullanıcıdan filtreleme için değer al
+            value = input(f"\n{column_name} sütununda aramak istediğiniz değeri girin: ")
 
-        # 5. Hastalik Tablosu
-        elif table_choice == '5':
-            table_name = 'hastalik'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
+            # Sorguyu oluştur ve çalıştır
+            query = sql.SQL("SELECT * FROM {} WHERE {} = %s").format(
+                sql.Identifier(table_name),
+                sql.Identifier(column_name)
+            )
+            cur.execute(query, (value,))
+            results = cur.fetchall()
 
-        # 6. Tedavi Tablosu
-        elif table_choice == '6':
-            table_name = 'tedavi'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
+            # Sonuçları göster
+            print(f"\n{table_name} tablosunda {column_name} = {value} için bulunan sonuçlar:")
+            for row in results:
+                print(row)
 
-        # 7. Ilac Tablosu
-        elif table_choice == '7':
-            table_name = 'ilac'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
+        except ValueError:
+            print("Geçersiz giriş. Lütfen bir sayı girin.")
 
-        # 8. Recete Tablosu
-        elif table_choice == '8':
-            table_name = 'recete'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
-
-        # 9. Laboratuvar Testi Tablosu
-        elif table_choice == '9':
-            table_name = 'laboratuvar_testi'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
-
-        # 10. Hastane Personel Tablosu
-        elif table_choice == '10':
-            table_name = 'hastane_personel'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
-
-        # 11. Personel Maas Tablosu
-        elif table_choice == '11':
-            table_name = 'personel_maas'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
-
-        # 12. Bolum Tablosu
-        elif table_choice == '12':
-            table_name = 'bolum'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
-
-        # 13. Departman Tablosu
-        elif table_choice == '13':
-            table_name = 'departman'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
-
-        # 14. Hastane Donanim Tablosu
-        elif table_choice == '14':
-            table_name = 'hastane_donanim'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
-
-        # 15. Ameliyat Tablosu
-        elif table_choice == '15':
-            table_name = 'ameliyat'
-            condition = input("Sorgu koşulunu girin: ")
-            result = select_data(table_name, condition)
-            print(result)
-
-        else:
-
-            print("Geçersiz seçim. Lütfen 1-15 arasında bir sayı seçin.")
 
 
     # 3. Veri Güncelleme
@@ -669,28 +606,37 @@ while True:
 
 
     elif choice == '4':
+        tables = [
+        "hasta", "doktor", "randevu", "muayene", "hastalik",
+        "tedavi", "ilac", "recete", "laboratuvar_testi",
+        "hastane_personel", "personel_maas", "bolum",
+        "departman", "hastane_donanim", "ameliyat"
+    ]
 
-        print("1. Hasta")
-        print("2. Doktor")
-        print("3. Randevu")
-        print("4. Muayene")
-        print("5. Hastalik")
-        print("6. Tedavi")
-        print("7. Ilac")
-        print("8. Recete")
-        print("9. Laboratuvar Testi")
-        print("10. Hastane Personel")
-        print("11. Personel Maas")
-        print("12. Bolum")
-        print("13. Departman")
-        print("14. Hastane Donanim")
-        print("15. Ameliyat")
+        # Tablo listesini kullanıcıya göster
+        print("Silmek istediğiniz tabloyu seçin:")
+        for i, table in enumerate(tables, start=1):
+            print(f"{i}. {table}")
 
-        table_name = input("Veri silmek istediğiniz tablo adını girin (1-15): ")
-        show_all_data(table_name)  # Mevcut ID'leri göster
-        condition = input(f"\nHangi {table_name} ID'sini silmek istiyorsunuz?: ")
-        delete_data(table_name, f"{table_name}_id = {condition}")
-        print(f"{table_name} verisi silindi.")
+        # Kullanıcıdan tablo seçimi al
+        try:
+            table_choice = int(input("\nLütfen tablo numarasını girin (1-15): "))
+            if 1 <= table_choice <= len(tables):
+                table_name = tables[table_choice - 1]
+            else:
+                print("Geçersiz seçim. Lütfen 1 ile 15 arasında bir sayı girin.")
+                
+
+            # Seçilen tablodaki mevcut verileri göster
+            show_all_data(table_name)
+
+            # Silmek için ID iste ve silme işlemini yap
+            record_id = input(f"\nHangi {table_name} ID'sini silmek istiyorsunuz?: ")
+            delete_data(table_name, f"{table_name}_id = {record_id}")
+            print(f"{table_name} tablosundan ID {record_id} başarıyla silindi.")
+        except ValueError:
+            print("Geçersiz giriş. Lütfen bir sayı girin.")
+
 
 
     elif choice == '5':
