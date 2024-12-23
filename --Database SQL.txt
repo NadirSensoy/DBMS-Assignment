@@ -226,6 +226,15 @@ CREATE TABLE ameliyat_randevusu (
 
 ) INHERITS (randevu);
 
+CREATE TABLE salary_log (
+    log_id SERIAL PRIMARY KEY,
+    personel_id INT NOT NULL,
+    old_salary DECIMAL(10, 2) NOT NULL,
+    new_salary DECIMAL(10, 2) NOT NULL,
+    update_date DATE NOT NULL
+);
+
+
 INSERT INTO hasta (ad, soyad, dogum_tarihi, cinsiyet, telefon) VALUES 
     ('Ahmet', 'Yılmaz', '1990-05-15', 'Erkek', '555-1234'),
     ('Ayşe', 'Demir', '1985-08-22', 'Kadın', '555-5678'),
